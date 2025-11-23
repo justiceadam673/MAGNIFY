@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,16 +18,32 @@ const Auth = () => {
   const [signupName, setSignupName] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/app/dashboard");
+      }
+    };
+    checkSession();
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // TODO: Implement Lovable Cloud authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      if (error) throw error;
+
       toast.success("Welcome back! Redirecting to your dashboard...");
-      setTimeout(() => navigate("/app/dashboard"), 1500);
-    } catch (error) {
-      toast.error("Login failed. Please check your credentials.");
+      navigate("/app/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
@@ -37,11 +54,23 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      // TODO: Implement Lovable Cloud authentication
+      const { data, error } = await supabase.auth.signUp({
+        email: signupEmail,
+        password: signupPassword,
+        options: {
+          data: {
+            full_name: signupName,
+          },
+          emailRedirectTo: `${window.location.origin}/app/onboarding`,
+        },
+      });
+
+      if (error) throw error;
+
       toast.success("Account created! Redirecting to onboarding...");
-      setTimeout(() => navigate("/app/onboarding"), 1500);
-    } catch (error) {
-      toast.error("Signup failed. Please try again.");
+      navigate("/app/onboarding");
+    } catch (error: any) {
+      toast.error(error.message || "Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
