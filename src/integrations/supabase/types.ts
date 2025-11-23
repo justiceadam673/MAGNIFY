@@ -14,7 +14,231 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      goals: {
+        Row: {
+          category: string | null
+          completed: boolean | null
+          created_at: string | null
+          current_value: number | null
+          id: string
+          target_date: string | null
+          target_value: number | null
+          title: string
+          updated_at: string | null
+          vision_id: string
+        }
+        Insert: {
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          current_value?: number | null
+          id?: string
+          target_date?: string | null
+          target_value?: number | null
+          title: string
+          updated_at?: string | null
+          vision_id: string
+        }
+        Update: {
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          current_value?: number | null
+          id?: string
+          target_date?: string | null
+          target_value?: number | null
+          title?: string
+          updated_at?: string | null
+          vision_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_vision_id_fkey"
+            columns: ["vision_id"]
+            isOneToOne: false
+            referencedRelation: "visions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journals: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          mood_tag: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          vision_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          mood_tag?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          vision_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          mood_tag?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          vision_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journals_vision_id_fkey"
+            columns: ["vision_id"]
+            isOneToOne: false
+            referencedRelation: "visions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          accent_color: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string
+          id: string
+          photo_url: string | null
+          timezone: string | null
+          tracker_default:
+            | Database["public"]["Enums"]["tracker_frequency"]
+            | null
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          id: string
+          photo_url?: string | null
+          timezone?: string | null
+          tracker_default?:
+            | Database["public"]["Enums"]["tracker_frequency"]
+            | null
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          id?: string
+          photo_url?: string | null
+          timezone?: string | null
+          tracker_default?:
+            | Database["public"]["Enums"]["tracker_frequency"]
+            | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tracker_entries: {
+        Row: {
+          created_at: string | null
+          date: string
+          goal_id: string
+          id: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          goal_id: string
+          id?: string
+          note?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          goal_id?: string
+          id?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracker_entries_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          reminder_time: string | null
+          title: string
+          tracker_frequency:
+            | Database["public"]["Enums"]["tracker_frequency"]
+            | null
+          type: Database["public"]["Enums"]["vision_type"]
+          updated_at: string | null
+          user_id: string
+          visibility: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reminder_time?: string | null
+          title: string
+          tracker_frequency?:
+            | Database["public"]["Enums"]["tracker_frequency"]
+            | null
+          type: Database["public"]["Enums"]["vision_type"]
+          updated_at?: string | null
+          user_id: string
+          visibility?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reminder_time?: string | null
+          title?: string
+          tracker_frequency?:
+            | Database["public"]["Enums"]["tracker_frequency"]
+            | null
+          type?: Database["public"]["Enums"]["vision_type"]
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +247,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      tracker_frequency: "daily" | "weekly"
+      vision_type: "gods-will" | "personal" | "financial"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +375,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tracker_frequency: ["daily", "weekly"],
+      vision_type: ["gods-will", "personal", "financial"],
+    },
   },
 } as const
