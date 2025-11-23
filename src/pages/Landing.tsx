@@ -1,8 +1,19 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Crown, TrendingUp, Heart, Sparkles, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsAuthenticated(true);
+      }
+    });
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary">
       {/* Hero Section */}
@@ -25,14 +36,24 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
-              <Button asChild size="lg" className="text-lg shadow-elegant">
-                <Link to="/signup">
-                  Start Your Journey <ChevronRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="text-lg">
-                <Link to="/login">Sign In</Link>
-              </Button>
+              {isAuthenticated ? (
+                <Button asChild size="lg" className="text-lg shadow-elegant">
+                  <Link to="/app/dashboard">
+                    Go to Dashboard <ChevronRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild size="lg" className="text-lg shadow-elegant">
+                    <Link to="/login">
+                      Start Your Journey <ChevronRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="text-lg">
+                    <Link to="/login">Sign In</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -99,8 +120,8 @@ const Landing = () => {
             and reflections designed for faith-driven growth.
           </p>
           <Button asChild size="lg" variant="secondary" className="text-lg">
-            <Link to="/signup">
-              Create Your Free Account <ChevronRight className="ml-2 h-5 w-5" />
+            <Link to={isAuthenticated ? "/app/dashboard" : "/login"}>
+              {isAuthenticated ? "Go to Dashboard" : "Create Your Free Account"} <ChevronRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
         </div>
