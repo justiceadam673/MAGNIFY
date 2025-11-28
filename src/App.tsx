@@ -8,6 +8,7 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
+import VisionDetail from "./pages/VisionDetail";
 import Tracker from "./pages/Tracker";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Onboarding />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/visions/:id"
+            element={
+              <ProtectedRoute>
+                <VisionDetail />
               </ProtectedRoute>
             }
           />
