@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,24 +20,30 @@ const Onboarding = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [trackerFrequency, setTrackerFrequency] = useState<"daily" | "weekly">("daily");
-  const [goals, setGoals] = useState([
-    { title: "Tithe", category: "", targetDate: "" },
-    { title: "Offering", category: "", targetDate: "" },
-    { title: "Gifts to God", category: "", targetDate: "" }
-  ]);
+  const [goals, setGoals] = useState([{ title: "", category: "", targetDate: "" }]);
+  
+  // Giving Vision specific state
+  const [givingTypes, setGivingTypes] = useState({
+    tithe: { enabled: false, amount: "", comments: "" },
+    offering: { enabled: false, amount: "", comments: "" },
+    gifts: { enabled: false, amount: "", comments: "" }
+  });
 
   const handleVisionTypeChange = (value: "gods-will" | "personal" | "financial") => {
     setVisionType(value);
-    // Pre-populate goals for Giving Vision
-    if (value === "gods-will") {
-      setGoals([
-        { title: "Tithe", category: "", targetDate: "" },
-        { title: "Offering", category: "", targetDate: "" },
-        { title: "Gifts to God", category: "", targetDate: "" }
-      ]);
-    } else {
+    if (value !== "gods-will") {
       setGoals([{ title: "", category: "", targetDate: "" }]);
     }
+  };
+
+  const updateGivingType = (type: "tithe" | "offering" | "gifts", field: "enabled" | "amount" | "comments", value: boolean | string) => {
+    setGivingTypes(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [field]: value
+      }
+    }));
   };
 
   const addGoal = () => {
@@ -79,15 +86,30 @@ const Onboarding = () => {
 
       if (visionError) throw visionError;
 
-      // Create goals
-      const goalsToInsert = goals
-        .filter((g) => g.title.trim() !== "")
-        .map((goal) => ({
-          vision_id: vision.id,
-          title: goal.title,
-          category: goal.category || null,
-          target_date: goal.targetDate || null,
-        }));
+      // Create goals based on vision type
+      let goalsToInsert;
+      
+      if (visionType === "gods-will") {
+        // For Giving Vision, create goals from selected giving types
+        goalsToInsert = Object.entries(givingTypes)
+          .filter(([_, data]) => data.enabled)
+          .map(([type, data]) => ({
+            vision_id: vision.id,
+            title: type === "tithe" ? "Tithe" : type === "offering" ? "Offering" : "Gifts to God",
+            category: data.comments || null,
+            target_value: data.amount ? parseFloat(data.amount) : null,
+          }));
+      } else {
+        // For other visions, use the goals array
+        goalsToInsert = goals
+          .filter((g) => g.title.trim() !== "")
+          .map((goal) => ({
+            vision_id: vision.id,
+            title: goal.title,
+            category: goal.category || null,
+            target_date: goal.targetDate || null,
+          }));
+      }
 
       if (goalsToInsert.length > 0) {
         const { error: goalsError } = await supabase
@@ -113,6 +135,10 @@ const Onboarding = () => {
       case 2:
         return title.trim() !== "";
       case 3:
+        if (visionType === "gods-will") {
+          // For Giving Vision, at least one giving type must be enabled
+          return Object.values(givingTypes).some(g => g.enabled);
+        }
         return goals.some((g) => g.title.trim() !== "");
       case 4:
         return true;
@@ -216,7 +242,125 @@ const Onboarding = () => {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 3 && visionType === "gods-will" && (
+              <div className="space-y-6">
+                {/* Tithe */}
+                <div className="space-y-3 p-4 border border-border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="tithe"
+                      checked={givingTypes.tithe.enabled}
+                      onCheckedChange={(checked) => updateGivingType("tithe", "enabled", checked as boolean)}
+                    />
+                    <Label htmlFor="tithe" className="text-base font-medium cursor-pointer">
+                      Tithe
+                    </Label>
+                  </div>
+                  {givingTypes.tithe.enabled && (
+                    <div className="space-y-3 ml-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="tithe-amount">Amount</Label>
+                        <Input
+                          id="tithe-amount"
+                          type="number"
+                          placeholder="0.00"
+                          value={givingTypes.tithe.amount}
+                          onChange={(e) => updateGivingType("tithe", "amount", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tithe-comments">Comments / Captions</Label>
+                        <Textarea
+                          id="tithe-comments"
+                          placeholder="Add notes or comments..."
+                          value={givingTypes.tithe.comments}
+                          onChange={(e) => updateGivingType("tithe", "comments", e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Offering */}
+                <div className="space-y-3 p-4 border border-border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="offering"
+                      checked={givingTypes.offering.enabled}
+                      onCheckedChange={(checked) => updateGivingType("offering", "enabled", checked as boolean)}
+                    />
+                    <Label htmlFor="offering" className="text-base font-medium cursor-pointer">
+                      Offering
+                    </Label>
+                  </div>
+                  {givingTypes.offering.enabled && (
+                    <div className="space-y-3 ml-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="offering-amount">Amount</Label>
+                        <Input
+                          id="offering-amount"
+                          type="number"
+                          placeholder="0.00"
+                          value={givingTypes.offering.amount}
+                          onChange={(e) => updateGivingType("offering", "amount", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="offering-comments">Comments / Captions</Label>
+                        <Textarea
+                          id="offering-comments"
+                          placeholder="Add notes or comments..."
+                          value={givingTypes.offering.comments}
+                          onChange={(e) => updateGivingType("offering", "comments", e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Gifts to God */}
+                <div className="space-y-3 p-4 border border-border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="gifts"
+                      checked={givingTypes.gifts.enabled}
+                      onCheckedChange={(checked) => updateGivingType("gifts", "enabled", checked as boolean)}
+                    />
+                    <Label htmlFor="gifts" className="text-base font-medium cursor-pointer">
+                      Gifts to God
+                    </Label>
+                  </div>
+                  {givingTypes.gifts.enabled && (
+                    <div className="space-y-3 ml-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="gifts-amount">Amount</Label>
+                        <Input
+                          id="gifts-amount"
+                          type="number"
+                          placeholder="0.00"
+                          value={givingTypes.gifts.amount}
+                          onChange={(e) => updateGivingType("gifts", "amount", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gifts-comments">Comments / Captions</Label>
+                        <Textarea
+                          id="gifts-comments"
+                          placeholder="Add notes or comments..."
+                          value={givingTypes.gifts.comments}
+                          onChange={(e) => updateGivingType("gifts", "comments", e.target.value)}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {step === 3 && visionType !== "gods-will" && (
               <div className="space-y-4">
                 {goals.map((goal, index) => (
                   <div key={index} className="space-y-3 p-4 border border-border rounded-lg">
