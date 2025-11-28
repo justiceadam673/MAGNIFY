@@ -142,7 +142,11 @@ const Onboarding = () => {
         }
         return title.trim() !== "";
       case 3:
-        // Step 3 is skipped for Giving Vision
+        if (visionType === "gods-will") {
+          // For Giving Vision, step 3 is tracker frequency (always can proceed)
+          return true;
+        }
+        // For other visions, step 3 is goals
         return goals.some((g) => g.title.trim() !== "");
       case 4:
         return true;
@@ -165,7 +169,7 @@ const Onboarding = () => {
               <div
                 key={i}
                 className={`h-2 w-12 rounded-full transition-colors ${
-                  i <= (visionType === "gods-will" && step === 4 ? 3 : step) ? "bg-primary" : "bg-muted"
+                  i <= step ? "bg-primary" : "bg-muted"
                 }`}
               />
             ))}
@@ -178,6 +182,7 @@ const Onboarding = () => {
               {step === 1 && "Choose Vision Type"}
               {step === 2 && visionType === "gods-will" && "Select Your Giving Types"}
               {step === 2 && visionType !== "gods-will" && "Vision Details"}
+              {step === 3 && visionType === "gods-will" && "Tracking Preferences"}
               {step === 3 && visionType !== "gods-will" && "Set Your Goals"}
               {step === 4 && "Tracking Preferences"}
             </CardTitle>
@@ -185,6 +190,7 @@ const Onboarding = () => {
               {step === 1 && "Select the type of vision you want to create"}
               {step === 2 && visionType === "gods-will" && "Choose which giving types to track and set initial amounts"}
               {step === 2 && visionType !== "gods-will" && "Give your vision a meaningful title and description"}
+              {step === 3 && visionType === "gods-will" && "Choose how often you want to track progress"}
               {step === 3 && visionType !== "gods-will" && "Add 1-5 goals to track progress"}
               {step === 4 && "Choose how often you want to track progress"}
             </CardDescription>
@@ -366,6 +372,34 @@ const Onboarding = () => {
               </div>
             )}
 
+            {step === 3 && visionType === "gods-will" && (
+              <RadioGroup
+                value={trackerFrequency}
+                onValueChange={(value: any) => setTrackerFrequency(value)}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-accent transition-colors cursor-pointer">
+                    <RadioGroupItem value="daily" id="daily" />
+                    <Label htmlFor="daily" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Daily Tracking</div>
+                      <div className="text-sm text-muted-foreground">
+                        Track progress every day for consistent habits
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-accent transition-colors cursor-pointer">
+                    <RadioGroupItem value="weekly" id="weekly" />
+                    <Label htmlFor="weekly" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Weekly Tracking</div>
+                      <div className="text-sm text-muted-foreground">
+                        Track progress weekly for long-term goals
+                      </div>
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            )}
+
             {step === 3 && visionType !== "gods-will" && (
               <div className="space-y-4">
                 {goals.map((goal, index) => (
@@ -438,17 +472,7 @@ const Onboarding = () => {
 
             <div className="flex justify-between pt-4">
               {step > 1 ? (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    // For Giving Vision, go from step 4 back to step 2 (skip step 3)
-                    if (visionType === "gods-will" && step === 4) {
-                      setStep(2);
-                    } else {
-                      setStep(step - 1);
-                    }
-                  }}
-                >
+                <Button variant="outline" onClick={() => setStep(step - 1)}>
                   <ChevronLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
@@ -458,18 +482,8 @@ const Onboarding = () => {
                 </Button>
               )}
               
-              {step < 4 ? (
-                <Button 
-                  onClick={() => {
-                    // For Giving Vision, go from step 2 to step 4 (skip step 3)
-                    if (visionType === "gods-will" && step === 2) {
-                      setStep(4);
-                    } else {
-                      setStep(step + 1);
-                    }
-                  }} 
-                  disabled={!canProceed()}
-                >
+              {(visionType === "gods-will" && step < 3) || (visionType !== "gods-will" && step < 4) ? (
+                <Button onClick={() => setStep(step + 1)} disabled={!canProceed()}>
                   Next
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
