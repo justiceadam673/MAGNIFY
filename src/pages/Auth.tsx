@@ -16,6 +16,7 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupName, setSignupName] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,15 +61,16 @@ const Auth = () => {
         options: {
           data: {
             full_name: signupName,
+            phone: signupPhone,
           },
-          emailRedirectTo: `${window.location.origin}/app/onboarding`,
+          emailRedirectTo: `${window.location.origin}/app/dashboard`,
         },
       });
 
       if (error) throw error;
 
-      toast.success("Account created! Redirecting to onboarding...");
-      navigate("/app/onboarding");
+      toast.success("Account created! Redirecting to dashboard...");
+      navigate("/app/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Signup failed. Please try again.");
     } finally {
@@ -153,6 +155,17 @@ const Auth = () => {
                       placeholder="John Smith"
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone Number</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                      value={signupPhone}
+                      onChange={(e) => setSignupPhone(e.target.value)}
                       required
                     />
                   </div>
