@@ -71,14 +71,17 @@ const Onboarding = () => {
       
       if (!user) throw new Error("Not authenticated");
 
-      // Create vision
+      // Create vision with default title/description for Giving Vision
+      const visionTitle = visionType === "gods-will" ? "My Giving Vision" : title;
+      const visionDescription = visionType === "gods-will" ? "Track my tithes, offerings, and gifts to God" : description;
+
       const { data: vision, error: visionError } = await supabase
         .from("visions")
         .insert({
           user_id: user.id,
           type: visionType,
-          title,
-          description,
+          title: visionTitle,
+          description: visionDescription,
           tracker_frequency: trackerFrequency,
         })
         .select()
@@ -139,9 +142,7 @@ const Onboarding = () => {
         }
         return title.trim() !== "";
       case 3:
-        if (visionType === "gods-will") {
-          return title.trim() !== "";
-        }
+        // Step 3 is skipped for Giving Vision
         return goals.some((g) => g.title.trim() !== "");
       case 4:
         return true;
@@ -160,11 +161,11 @@ const Onboarding = () => {
           </div>
           <p className="text-muted-foreground">Create Your Vision</p>
           <div className="flex justify-center gap-2 mt-4">
-            {[1, 2, 3, 4].map((i) => (
+            {Array.from({ length: visionType === "gods-will" ? 3 : 4 }, (_, i) => i + 1).map((i) => (
               <div
                 key={i}
                 className={`h-2 w-12 rounded-full transition-colors ${
-                  i <= step ? "bg-primary" : "bg-muted"
+                  i <= (visionType === "gods-will" && step === 4 ? 3 : step) ? "bg-primary" : "bg-muted"
                 }`}
               />
             ))}
@@ -177,7 +178,6 @@ const Onboarding = () => {
               {step === 1 && "Choose Vision Type"}
               {step === 2 && visionType === "gods-will" && "Select Your Giving Types"}
               {step === 2 && visionType !== "gods-will" && "Vision Details"}
-              {step === 3 && visionType === "gods-will" && "Vision Details"}
               {step === 3 && visionType !== "gods-will" && "Set Your Goals"}
               {step === 4 && "Tracking Preferences"}
             </CardTitle>
@@ -185,7 +185,6 @@ const Onboarding = () => {
               {step === 1 && "Select the type of vision you want to create"}
               {step === 2 && visionType === "gods-will" && "Choose which giving types to track and set initial amounts"}
               {step === 2 && visionType !== "gods-will" && "Give your vision a meaningful title and description"}
-              {step === 3 && visionType === "gods-will" && "Give your giving vision a meaningful title and description"}
               {step === 3 && visionType !== "gods-will" && "Add 1-5 goals to track progress"}
               {step === 4 && "Choose how often you want to track progress"}
             </CardDescription>
@@ -367,30 +366,6 @@ const Onboarding = () => {
               </div>
             )}
 
-            {step === 3 && visionType === "gods-will" && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Vision Title *</Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g., Faithful Giving 2024"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (optional)</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe what this giving vision means to you..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-              </div>
-            )}
-
             {step === 3 && visionType !== "gods-will" && (
               <div className="space-y-4">
                 {goals.map((goal, index) => (
@@ -463,7 +438,17 @@ const Onboarding = () => {
 
             <div className="flex justify-between pt-4">
               {step > 1 ? (
-                <Button variant="outline" onClick={() => setStep(step - 1)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    // For Giving Vision, go from step 4 back to step 2 (skip step 3)
+                    if (visionType === "gods-will" && step === 4) {
+                      setStep(2);
+                    } else {
+                      setStep(step - 1);
+                    }
+                  }}
+                >
                   <ChevronLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
@@ -474,7 +459,17 @@ const Onboarding = () => {
               )}
               
               {step < 4 ? (
-                <Button onClick={() => setStep(step + 1)} disabled={!canProceed()}>
+                <Button 
+                  onClick={() => {
+                    // For Giving Vision, go from step 2 to step 4 (skip step 3)
+                    if (visionType === "gods-will" && step === 2) {
+                      setStep(4);
+                    } else {
+                      setStep(step + 1);
+                    }
+                  }} 
+                  disabled={!canProceed()}
+                >
                   Next
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
