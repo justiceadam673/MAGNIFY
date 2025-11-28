@@ -19,7 +19,25 @@ const Onboarding = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [trackerFrequency, setTrackerFrequency] = useState<"daily" | "weekly">("daily");
-  const [goals, setGoals] = useState([{ title: "", category: "", targetDate: "" }]);
+  const [goals, setGoals] = useState([
+    { title: "Tithe", category: "", targetDate: "" },
+    { title: "Offering", category: "", targetDate: "" },
+    { title: "Gifts to God", category: "", targetDate: "" }
+  ]);
+
+  const handleVisionTypeChange = (value: "gods-will" | "personal" | "financial") => {
+    setVisionType(value);
+    // Pre-populate goals for Giving Vision
+    if (value === "gods-will") {
+      setGoals([
+        { title: "Tithe", category: "", targetDate: "" },
+        { title: "Offering", category: "", targetDate: "" },
+        { title: "Gifts to God", category: "", targetDate: "" }
+      ]);
+    } else {
+      setGoals([{ title: "", category: "", targetDate: "" }]);
+    }
+  };
 
   const addGoal = () => {
     if (goals.length < 5) {
@@ -141,14 +159,14 @@ const Onboarding = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 1 && (
-              <RadioGroup value={visionType} onValueChange={(value: any) => setVisionType(value)}>
+              <RadioGroup value={visionType} onValueChange={(value: any) => handleVisionTypeChange(value)}>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-accent transition-colors cursor-pointer">
                     <RadioGroupItem value="gods-will" id="gods-will" />
                     <Label htmlFor="gods-will" className="flex-1 cursor-pointer">
-                      <div className="font-medium">🙏 God's Will Vision</div>
+                      <div className="font-medium">🙏 Giving Vision</div>
                       <div className="text-sm text-muted-foreground">
-                        Spiritual giving, worship commitments, and faith goals
+                        Tithe, Offering, and Gifts to God
                       </div>
                     </Label>
                   </div>
