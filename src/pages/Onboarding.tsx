@@ -133,11 +133,14 @@ const Onboarding = () => {
       case 1:
         return true;
       case 2:
-        return title.trim() !== "";
-      case 3:
         if (visionType === "gods-will") {
           // For Giving Vision, at least one giving type must be enabled
           return Object.values(givingTypes).some(g => g.enabled);
+        }
+        return title.trim() !== "";
+      case 3:
+        if (visionType === "gods-will") {
+          return title.trim() !== "";
         }
         return goals.some((g) => g.title.trim() !== "");
       case 4:
@@ -172,14 +175,18 @@ const Onboarding = () => {
           <CardHeader>
             <CardTitle className="font-serif">
               {step === 1 && "Choose Vision Type"}
-              {step === 2 && "Vision Details"}
-              {step === 3 && "Set Your Goals"}
+              {step === 2 && visionType === "gods-will" && "Select Your Giving Types"}
+              {step === 2 && visionType !== "gods-will" && "Vision Details"}
+              {step === 3 && visionType === "gods-will" && "Vision Details"}
+              {step === 3 && visionType !== "gods-will" && "Set Your Goals"}
               {step === 4 && "Tracking Preferences"}
             </CardTitle>
             <CardDescription>
               {step === 1 && "Select the type of vision you want to create"}
-              {step === 2 && "Give your vision a meaningful title and description"}
-              {step === 3 && "Add 1-5 goals to track progress"}
+              {step === 2 && visionType === "gods-will" && "Choose which giving types to track and set initial amounts"}
+              {step === 2 && visionType !== "gods-will" && "Give your vision a meaningful title and description"}
+              {step === 3 && visionType === "gods-will" && "Give your giving vision a meaningful title and description"}
+              {step === 3 && visionType !== "gods-will" && "Add 1-5 goals to track progress"}
               {step === 4 && "Choose how often you want to track progress"}
             </CardDescription>
           </CardHeader>
@@ -218,31 +225,7 @@ const Onboarding = () => {
               </RadioGroup>
             )}
 
-            {step === 2 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Vision Title *</Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g., Generous Living Journey"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (optional)</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe what this vision means to you..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-              </div>
-            )}
-
-            {step === 3 && visionType === "gods-will" && (
+            {step === 2 && visionType === "gods-will" && (
               <div className="space-y-6">
                 {/* Tithe */}
                 <div className="space-y-3 p-4 border border-border rounded-lg">
@@ -356,6 +339,54 @@ const Onboarding = () => {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {step === 2 && visionType !== "gods-will" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Vision Title *</Label>
+                  <Input
+                    id="title"
+                    placeholder="e.g., Generous Living Journey"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description (optional)</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe what this vision means to you..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </div>
+            )}
+
+            {step === 3 && visionType === "gods-will" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Vision Title *</Label>
+                  <Input
+                    id="title"
+                    placeholder="e.g., Faithful Giving 2024"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description (optional)</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe what this giving vision means to you..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                  />
                 </div>
               </div>
             )}
